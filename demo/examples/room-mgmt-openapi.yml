@@ -1,0 +1,839 @@
+openapi: 3.0.0
+info:
+  title: RoomManagementHTTPAPI postman collection
+  version: 1.0.0
+servers:
+  - url: http://localhost:7070
+paths:
+  /liveness:
+    get:
+      tags:
+        - default
+      summary: /liveness
+      description: API to check liveness of HTTP server
+      responses:
+        undefined:
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Live since 2022-09-07T23:10:32+08:00
+  /readiness:
+    get:
+      tags:
+        - default
+      summary: /readiness
+      description: API to check readiness of HTTP server
+      responses:
+        undefined:
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Ready since 2022-09-07T23:10:32+08:00
+  /rooms:
+    post:
+      tags:
+        - default
+      summary: /rooms
+      description: >-
+        API to book room, reply with webapp URL to join the room  
+
+        \- Poll periodically (configurable interval) for startTime, endTime and
+        announcements time  
+
+        \- room session will be created at startTime  
+
+        \- to start room immediately, set startTime to past time  
+
+        \- to start room 15 minutes before actual 9am session, set startTime to
+        8:45am  
+
+        \- room session will be terminated at endTime  
+
+        \- announcements through chat messaging to selected or all participants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: |-
+                {
+                    "requestor": "10206739",                "#requestor": "Mandatory field of userId calling the API",
+                    "name": "test-room-ABC",
+                    "startTime": "2022-09-07T13:00:00Z",    "#startTime": "Mandatory field in ISO8601 format",
+                    "endTime": "2022-09-07T14:00:00Z",      "#endTime": "Mandatory field in ISO8601 format",
+                    "announcements": [
+                        {
+                            "id": "00cc2c62-d3a1-4d15-b1d0-abe3f51d1695",                     "#id": "Mandatory & Unique field",
+                            "message": "This is a test message", "#message": "Mandatory field",
+                            "relativeFrom": "start",             "#relativeFrom1": "default is 'end'",
+                                                                 "#relativeFrom2": "accepts only: NULL|'start'|'end'"
+                            "relativeTimeInSeconds": 900,        "#relativeTimeInSeconds": "Mandatory field",
+                            "userId": [
+                                "10206739",
+                                "10208888"
+                            ]                                    ,"#userId": "default is messsage to all"
+                        },
+                        {
+                            "id": "c50ae8ba-0459-4769-8765-611339d7d408",
+                            "message": "This is another test message",
+                            "relativeTimeInSeconds": 600
+                        }
+                    ],
+                    "allowedUserId": [
+                        "10206739",
+                        "10208888"
+                    ]                                    ,"#allowedUserId": "default is everyone is permitted"
+                }
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                name: test-room-ABC
+                status: Booked
+                startTime: "2022-09-07T13:00:00Z"
+                endTime: "2022-09-07T14:00:00Z"
+                announcements:
+                  - id: 00cc2c62-d3a1-4d15-b1d0-abe3f51d1695
+                    message: This is a test message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 900
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: c50ae8ba-0459-4769-8765-611339d7d408
+                    message: This is another test message
+                    relativeFrom: end
+                    relativeTimeInSeconds: 600
+                    userId: []
+                allowedUserId: []
+                users:
+                  - userId: "10206739"
+                    userName: Shawn Ho
+                  - userId: "10208888"
+                    userName: Tan Ah Gao
+                createdAt: "2022-09-06T13:00:00Z"
+                createdBy: "10206739"
+                updatedAt: "2022-09-06T13:00:00Z"
+                updatedBy: "10206739"
+    get:
+      tags:
+        - default
+      summary: /rooms
+      description: API to query list of booked rooms
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id:
+                  - f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                  - f81d4fae-7dec-11d0-ffee-00a0c91e6bf6
+  /rooms/{roomid}/metadata:
+    post:
+      tags:
+        - default
+      summary: /rooms/[roomid]/metadata
+      description: API to add metadata to recorded room sessions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                metadata:
+                  anyKey: anyValue
+                  anyObject:
+                    anyKey: anyValue
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+    get:
+      tags:
+        - default
+      summary: /rooms/[roomid]/metadata
+      description: API to query metadata by roomId
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                metadata:
+                  - id: f81d4fae-7dec-11d0-a765-00a0c91e6ba6
+                    timestamp: "2022-09-07T14:00:00Z"
+                    metadata:
+                      anyKey: anyValue
+                      anyObject:
+                        anyKey: anyValue
+                  - id: f81d4fae-7dec-11d0-a765-00a0c91e6bb6
+                    timestamp: "2022-09-07T15:00:00Z"
+                    metadata:
+                      anyKey: anyValue
+                      anyObject:
+                        anyKey: anyValue
+  /rooms/{roomid}/metadata/{id}:
+    patch:
+      tags:
+        - default
+      summary: /rooms/[roomid]/metadata/[id]
+      description: API to patch metadata
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                metadata:
+                  anyObject:
+                    anyKey: newValue
+                    newKey: anyValue
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: metadatId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6ba6
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                metadata:
+                  - id: f81d4fae-7dec-11d0-a765-00a0c91e6ba6
+                    timestamp: "2022-09-07T14:00:00Z"
+                    metadata:
+                      anyKey: anyValue
+                      anyObject:
+                        anyKey: newValue
+                        newKey: anyValue
+                  - id: f81d4fae-7dec-11d0-a765-00a0c91e6bb6
+                    timestamp: "2022-09-07T15:00:00Z"
+                    metadata:
+                      anyKey: anyValue
+                      anyObject:
+                        anyKey: anyValue
+    delete:
+      tags:
+        - default
+      summary: /rooms/[roomid]/metadata/[id]
+      description: API to delete metadata
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        undefined:
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /rooms/{roomid}:
+    get:
+      tags:
+        - default
+      summary: /rooms/[roomid]
+      description: >-
+        API to query information of particular room  
+
+        \- Room Status: "Booked", "Started", "Ended"  
+
+        \- When room is "Started", "users" list the users present inside the
+        room
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                name: test-room-ABC
+                status: Started
+                startTime: "2022-09-07T13:00:00Z"
+                endTime: "2022-09-07T14:00:00Z"
+                announcements:
+                  - id: 00cc2c62-d3a1-4d15-b1d0-abe3f51d1695
+                    message: This is a test message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 900
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: c50ae8ba-0459-4769-8765-611339d7d408
+                    message: This is another test message
+                    relativeFrom: end
+                    relativeTimeInSeconds: 600
+                    userId: []
+                allowedUserId: []
+                users:
+                  - userId: "10206739"
+                    userName: Shawn Ho
+                  - userId: "10208888"
+                    userName: Tan Ah Gao
+                createdAt: "2022-09-06T13:00:00Z"
+                createdBy: "10206739"
+                updatedAt: "2022-09-06T13:00:00Z"
+                updatedBy: "10206739"
+    patch:
+      tags:
+        - default
+      summary: /rooms/[roomid]
+      description: API to merge JSON body to database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                requestor: "10206739"
+                name: renamed-room-ABC
+                announcements:
+                  - id: c50ae8ba-0459-4769-8765-611339d7d408
+                    relativeFrom: start
+                    relativeTimeInSeconds: 300
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: a74e007c-b820-4384-80fb-b524ac338705
+                    message: This is a new test message
+                    relativeTimeInSeconds: 900
+                allowedUserId:
+                  - "10206739"
+                  - "10208888"
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                name: renamed-room-ABC
+                status: Booked
+                startTime: "2022-09-07T13:00:00Z"
+                endTime: "2022-09-07T14:00:00Z"
+                announcements:
+                  - id: 00cc2c62-d3a1-4d15-b1d0-abe3f51d1695
+                    message: This is a test message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 900
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: c50ae8ba-0459-4769-8765-611339d7d408
+                    message: This is another test message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 300
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: a74e007c-b820-4384-80fb-b524ac338705
+                    message: This is a new test message
+                    relativeFrom: end
+                    relativeTimeInSeconds: 900
+                    userId: []
+                allowedUserId:
+                  - "10206739"
+                  - "10208888"
+                users: []
+                createdAt: "2022-09-06T13:00:00Z"
+                createdBy: "10206739"
+                updatedAt: "2022-09-06T20:00:00Z"
+                updatedBy: "10206739"
+    delete:
+      tags:
+        - default
+      summary: /rooms/[roomid]
+      description: API to terminate room session before session endtime
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                remarks: >-
+                  Ending roomId 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6' in 15
+                  minutes
+  /rooms/{roomid}/chatinfo:
+    get:
+      tags:
+        - default
+      summary: /rooms/[roomid]/chatinfo
+      description: >-
+        API to query total sum of chat messages and chat attachments available
+        from a particular room session
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                name: test-room-ABC
+                startTime: "2022-09-07T13:00:00Z"
+                recordCount: 2
+  /rooms/{roomid}/chats:
+    get:
+      tags:
+        - default
+      summary: /rooms/[roomid]/chats
+      description: >-
+        API to query all chat messages and chat attachments from a particular
+        room session
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                msg:
+                  - uid: "10206739"
+                    name: Shawn Ho
+                    text: Hello World
+                    mimeType: message
+                    timestamp: "2022-09-09T00:30:59.000Z"
+                  - uid: "10206739"
+                    name: Shawn Ho
+                    base64File:
+                      name: HelloWorld.txt
+                      size: 11
+                      data: aGVsbG8gd29ybGQ=
+                    mimeType: whatFrontEndSends
+                    timestamp: "2022-09-09T00:31:59.000Z"
+                  - uid: "10206739"
+                    name: Shawn Ho
+                    text: Hello World Again
+                    mimeType: message
+                    timestamp: "2022-09-09T00:32:59.000Z"
+  /rooms/{roomid}/chats/{fromindex}/{toindex}:
+    get:
+      tags:
+        - default
+      summary: /rooms/[roomid]/chats/[fromindex]/[toindex]
+      description: >-
+        API to query range of chat messages and chat attachments from a
+        particular room session
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+        - name: fromindex
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: >-
+            start of range index, negative value is treated as 0, first chat
+            message is index 0
+          example: "0"
+        - name: toindex
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: >-
+            end of range index, inclusive, value greater than (chat count - 1 )
+            is treated as (chat count - 1), first chat message is index 0
+          example: "1"
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                msg:
+                  - uid: "10206739"
+                    name: Shawn Ho
+                    text: Hello World
+                    mimeType: message
+                    timestamp: "2022-09-09T00:30:59.000Z"
+                  - uid: "10206739"
+                    name: Shawn Ho
+                    base64File:
+                      name: HelloWorld.txt
+                      size: 11
+                      data: aGVsbG8gd29ybGQ=
+                    mimeType: whatFrontEndSends
+                    timestamp: "2022-09-09T00:31:59.000Z"
+                  - uid: "10206739"
+                    name: Shawn Ho
+                    text: Hello World Again
+                    mimeType: message
+                    timestamp: "2022-09-09T00:32:59.000Z"
+  /rooms/{roomid}/users/{userid}:
+    delete:
+      tags:
+        - default
+      summary: /rooms/[roomid]/users/[userid]
+      description: API to a kick a particular user from a particular room
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+        - name: userid
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: userId
+          example: "10206739"
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                remarks: >-
+                  Kicked userId '10206739' from roomId
+                  'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+  /rooms/{roomid}/announcements:
+    put:
+      tags:
+        - default
+      summary: /rooms/[roomid]/announcements
+      description: API to overwrite announcements by id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                requestor: "10206739"
+                announcements:
+                  - id: c50ae8ba-0459-4769-8765-611339d7d408
+                    message: This is a changed message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 300
+                  - id: e2bb248e-b129-4db3-aa9f-d78ddf22ffa2
+                    message: This is another new message
+                    relativeTimeInSeconds: 500
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                name: renamed-room-ABC
+                status: Booked
+                startTime: "2022-09-07T13:00:00Z"
+                endTime: "2022-09-07T14:00:00Z"
+                announcements:
+                  - id: 00cc2c62-d3a1-4d15-b1d0-abe3f51d1695
+                    message: This is a test message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 900
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: c50ae8ba-0459-4769-8765-611339d7d408
+                    message: This is a changed message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 300
+                    userId: []
+                  - id: a74e007c-b820-4384-80fb-b524ac338705
+                    message: This is a new test message
+                    relativeFrom: end
+                    relativeTimeInSeconds: 900
+                    userId: []
+                  - id: e2bb248e-b129-4db3-aa9f-d78ddf22ffa2
+                    message: This is another new message
+                    relativeFrom: end
+                    relativeTimeInSeconds: 500
+                    userId: []
+                allowedUserId:
+                  - "10206739"
+                  - "10208888"
+                users: []
+                createdAt: "2022-09-06T13:00:00Z"
+                createdBy: "10206739"
+                updatedAt: "2022-09-06T21:00:00Z"
+                updatedBy: "10206739"
+    delete:
+      tags:
+        - default
+      summary: /rooms/[roomid]/announcements
+      description: API to delete announcements by id
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+                name: renamed-room-ABC
+                status: Booked
+                startTime: "2022-09-07T13:00:00Z"
+                endTime: "2022-09-07T14:00:00Z"
+                announcements:
+                  - id: 00cc2c62-d3a1-4d15-b1d0-abe3f51d1695
+                    message: This is a test message
+                    relativeFrom: start
+                    relativeTimeInSeconds: 900
+                    userId:
+                      - "10206739"
+                      - "10208888"
+                  - id: a74e007c-b820-4384-80fb-b524ac338705
+                    message: This is a new test message
+                    relativeFrom: end
+                    relativeTimeInSeconds: 900
+                    userId: []
+                allowedUserId:
+                  - "10206739"
+                  - "10208888"
+                users: []
+                createdAt: "2022-09-06T13:00:00Z"
+                createdBy: "10206739"
+                updatedAt: "2022-09-06T22:00:00Z"
+                updatedBy: "10206739"
+  /playback/rooms/{roomid}:
+    post:
+      tags:
+        - default
+      summary: /playback/rooms/[roomid]
+      description: API to create a playback instance
+      requestBody:
+        content: {}
+      parameters:
+        - name: roomid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: roomId
+          example: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                id: df91094f-1fdd-4be6-a8c6-e4038ccc87f1
+                durationInSeconds: 3600000
+  /playback/{playbackid}/play:
+    post:
+      tags:
+        - default
+      summary: /playback/[playbackid]/play
+      description: API to start playing playback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                speed: 1
+                "#speed0": double rounded down to 1 decimal place
+                "#speed1": fast motion is > 1.0, slow motion is < 1.0
+                "#speed2": default is 1.0 (as recorded speed)
+                playfrom: 0
+                "#playfrom": >-
+                  number of seconds from start of recording, default is play
+                  from current state
+                chat: true
+                "#chat": boolean to playback chat, default is true
+                video: true
+                "#video": boolean to playback video, default is true
+                audio: true
+                "#audio": boolean to playback audio, default is true
+      parameters:
+        - name: playbackid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: playbackid
+          example: df91094f-1fdd-4be6-a8c6-e4038ccc87f1
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {}
+  /playback/{playbackid}/pause:
+    post:
+      tags:
+        - default
+      summary: /playback/[playbackid]/pause
+      description: API to pause playback
+      requestBody:
+        content: {}
+      parameters:
+        - name: playbackid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: playbackid
+          example: df91094f-1fdd-4be6-a8c6-e4038ccc87f1
+      responses:
+        undefined:
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null
+  /playback/{playbackid}:
+    delete:
+      tags:
+        - default
+      summary: /playback/[playbackid]
+      description: API to stop playback
+      parameters:
+        - name: playbackid
+          in: path
+          schema:
+            type: string
+          required: true
+          description: playbackid
+          example: df91094f-1fdd-4be6-a8c6-e4038ccc87f1
+      responses:
+        undefined:
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: null

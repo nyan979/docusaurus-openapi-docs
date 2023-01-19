@@ -239,6 +239,10 @@ const config = {
             specPath: "examples/food/yogurtstore/openapi.yaml",
             outputDir: "docs/food/yogurtstore",
           },
+          roomMgmt: {
+            specPath: "examples/food/roomMgmt/openapi.yaml",
+            outputDir: "docs/food/roomMgmt",
+          },
         },
       },
     ],
